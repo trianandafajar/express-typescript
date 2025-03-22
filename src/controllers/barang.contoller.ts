@@ -8,131 +8,81 @@ import {
   updateBarang
 } from '../services/barang.service'
 
-export const getAllBarang = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+// Helper untuk menangani error dengan lebih rapi
+const handleError = (error: unknown, functionName: string, next: NextFunction) => {
+  next(new Error(`Error di barang.controller.ts -> ${functionName}: ${String((error as Error).message)}`))
+}
+
+// Mendapatkan semua barang
+export const getAllBarang = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await getBarang()
-    return res.status(200).json({
-      error: null,
-      message: 'Pengambilan semua data berhasil',
-      data
-    })
-  } catch (error: Error | unknown) {
-    next(
-      new Error(
-        'Error pada file src/controllers/barang.controller.ts: getAllBarang - ' +
-          String((error as Error).message)
-      )
-    )
+    if (!data.length) {
+      return res.status(404).json({ error: null, message: 'Data barang kosong', data: [] })
+    }
+    return res.status(200).json({ error: null, message: 'Pengambilan semua data berhasil', data })
+  } catch (error) {
+    handleError(error, 'getAllBarang', next)
   }
 }
 
-export const getDataBarangById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+// Mendapatkan barang berdasarkan ID
+export const getDataBarangById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params
-    const barang = await getBarangById(parseInt(id))
-    return res.status(200).json({
-      error: null,
-      message: 'Pengambilan data sukses',
-      data: barang
-    })
-  } catch (error: Error | unknown) {
-    next(
-      new Error(
-        'Error pada file src/controllers/barang.controller.ts : getDataBarangById - ' +
-          String((error as Error).message)
-      )
-    )
+    const id = Number(req.params.id)
+    if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid', message: 'Gagal mengambil data', data: null })
+
+    const barang = await getBarangById(id)
+    if (!barang) return res.status(404).json({ error: null, message: 'Barang tidak ditemukan', data: null })
+
+    return res.status(200).json({ error: null, message: 'Pengambilan data sukses', data: barang })
+  } catch (error) {
+    handleError(error, 'getDataBarangById', next)
   }
 }
 
-export const insertDataBarang = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+// Menambahkan barang baru
+export const insertDataBarang = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { error, value } = inputBarangValidation(req.body)
-    if (error != null) {
-      return res.status(400).json({
-        error: error.details[0].message,
-        message: 'Input data gagal',
-        data: value
-      })
-    }
+    if (error) return res.status(400).json({ error: error.details[0].message, message: 'Input data gagal', data: null })
+
     const barang = await insertBarang(value)
-    return res.status(200).json({
-      error: null,
-      message: 'Input data sukses',
-      data: barang
-    })
-  } catch (error: Error | unknown) {
-    next(
-      new Error(
-        'Error pada file src/controllers/barang.controller.ts : insertDataBarang - ' +
-          String((error as Error).message)
-      )
-    )
+    return res.status(201).json({ error: null, message: 'Input data sukses', data: barang })
+  } catch (error) {
+    handleError(error, 'insertDataBarang', next)
   }
 }
 
-export const updateDataBarang = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+// Mengupdate data barang
+export const updateDataBarang = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params
+    const id = Number(req.params.id)
+    if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid', message: 'Update data gagal', data: null })
+
     const { error, value } = inputBarangValidation(req.body)
-    if (error != null) {
-      return res.status(400).json({
-        error: error.details[0].message,
-        message: 'Update data gagal',
-        data: value
-      })
-    }
-    const data = await updateBarang({ ...value, id: parseInt(id) })
-    return res.status(200).json({
-      error: null,
-      message: 'Update data sukses',
-      data
-    })
-  } catch (error: Error | unknown) {
-    next(
-      new Error(
-        'Error pada file src/controllers/barang.controller.ts : updateDataBarang - ' +
-          String((error as Error).message)
-      )
-    )
+    if (error) return res.status(400).json({ error: error.details[0].message, message: 'Update data gagal', data: null })
+
+    const updatedData = await updateBarang({ ...value, id })
+    if (!updatedData) return res.status(404).json({ error: null, message: 'Barang tidak ditemukan', data: null })
+
+    return res.status(200).json({ error: null, message: 'Update data sukses', data: updatedData })
+  } catch (error) {
+    handleError(error, 'updateDataBarang', next)
   }
 }
 
-export const deleteDataBarang = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<Response | undefined> => {
+// Menghapus barang
+export const deleteDataBarang = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params
-    const data = await deleteBarang(parseInt(id))
-    return res.status(200).json({
-      error: null,
-      message: 'Delete data sukses',
-      data
-    })
-  } catch (error: Error | unknown) {
-    next(
-      new Error(
-        'Error pada file src/controllers/barang.controller.ts : deleteDataBarang - ' +
-          String((error as Error).message)
-      )
-    )
+    const id = Number(req.params.id)
+    if (isNaN(id)) return res.status(400).json({ error: 'ID tidak valid', message: 'Hapus data gagal', data: null })
+
+    const deletedData = await deleteBarang(id)
+    if (!deletedData) return res.status(404).json({ error: null, message: 'Barang tidak ditemukan', data: null })
+
+    return res.status(200).json({ error: null, message: 'Delete data sukses', data: deletedData })
+  } catch (error) {
+    handleError(error, 'deleteDataBarang', next)
   }
 }
