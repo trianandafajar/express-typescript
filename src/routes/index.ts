@@ -1,16 +1,18 @@
 import { Router } from 'express'
 import barangRouter from './barang.route'
-import userRouter from './user.route' // Typo sebelumnya: 'user.router' harusnya 'user.route'
-import { errorHandling, notFound } from '../controllers/error.controller'
+import userRouter from './user.route'
+import { notFound, errorHandling } from '../controllers/error.controller'
 
 const router = Router()
 
-// Prefix semua API dengan '/api'
-router.use('/api/barang', barangRouter) // Langsung '/api/barang'
-router.use('/api/user', userRouter)     // Langsung '/api/user'
+// Group all API routes under /api
+router.use('/api/barang', barangRouter)
+router.use('/api/user', userRouter)
 
-// Error handler
+// Catch-all route for 404
 router.use('*', notFound)
+
+// Centralized error handling
 router.use(errorHandling)
 
 export default router
