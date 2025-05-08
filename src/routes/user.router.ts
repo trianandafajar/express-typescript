@@ -1,19 +1,28 @@
 import { Router } from 'express'
 import {
+  registerUser,
   loginUser,
-  refreshToken,
-  registerUser
+  refreshToken
 } from '../controllers/user.controller'
 
-const userRouter = Router()
+const router = Router()
 
-// POST /api/user/register
-userRouter.post('/register', registerUser)
+/**
+ * @route   POST /api/user/register
+ * @desc    Register new user
+ */
+router.post('/register', registerUser)
 
-// POST /api/user/login
-userRouter.post('/login', loginUser)
+/**
+ * @route   POST /api/user/login
+ * @desc    Login user
+ */
+router.post('/login', loginUser)
 
-// GET /api/user/refresh
-userRouter.get('/refresh', refreshToken)
+/**
+ * @route   GET /api/user/refresh
+ * @desc    Refresh access token
+ */
+router.get('/refresh', refreshToken)
 
-export default userRouter
+export default router
